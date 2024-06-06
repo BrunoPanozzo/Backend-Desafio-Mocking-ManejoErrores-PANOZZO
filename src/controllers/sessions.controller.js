@@ -1,4 +1,5 @@
 const { UserDTO } = require("../dao/dto/user.dto")
+const { generateUser } = require("../mocks/generateUsers")
 
 class SessionsController {
 
@@ -105,6 +106,14 @@ class SessionsController {
         
         // no es necesario validar el login aquí, ya lo hace passport!
         return res.redirect('/profile')
+    }
+
+    mockingUsers(req, res) {
+        const users = []
+        for (let i = 0; i < 100; i++) {
+            users.push(generateUser())
+        }
+        res.json(users)
     }
 
 }
