@@ -1,7 +1,7 @@
-const ProductsServices = require('../services/products.service')
-const TicketsServices = require('../services/tickets.service')
+const ProductsServices = require('../products/products.service')
+const TicketsServices = require('../tickets/tickets.service')
 
-const { ProductDAO, TicketDAO } = require('../dao/factory')
+const { ProductDAO, TicketDAO } = require('../../dao/factory')
 
 class CartsServices {
 

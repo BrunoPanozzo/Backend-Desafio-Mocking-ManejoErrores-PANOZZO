@@ -1,5 +1,5 @@
-const ProductsServices = require('../services/products.service')
-const CartsServices = require('../services/carts.service')
+const ProductsServices = require('../services/products/products.service')
+const CartsServices = require('../services/carts/carts.service')
 
 const { CartDAO, ProductDAO } = require('../dao/factory')
 const { ADMIN, SUPER_ADMIN } = require('../config/policies.constants')

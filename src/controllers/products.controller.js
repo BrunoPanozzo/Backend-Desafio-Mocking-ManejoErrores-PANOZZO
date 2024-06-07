@@ -1,4 +1,4 @@
-const ProductsServices = require('../services/products.service')
+const ProductsServices = require('../services/products/products.service')
 
 const { ProductDAO } = require('../dao/factory')
 const { ProductDTO } = require('../dao/dto/product.dto')

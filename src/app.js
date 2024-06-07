@@ -21,6 +21,7 @@ const sessionMiddleware = require('./session/mongoStorage')
 const { routers } = require('./routes/routersSetup')
 
 const dbMessageManager = require('./dao/dbManagers/MessageManager')
+const { errorHandler } = require('./services/errors/errorHandler')
 
 //instanciar mi app
 const app = express()
@@ -63,6 +64,9 @@ const main = async () => {
     for (const { path, router } of routers) {
         app.use(path, await router)
     }
+
+    //seteo el uso de mi propio errorHandler
+    app.use(errorHandler)
 
     let httpServer
 

@@ -1,7 +1,10 @@
 const { esPositivo } = require('../middlewares/product.middleware')
+const { CustomError } = require('../services/errors/CustomError')
+const { ErrorCodes } = require('../services/errors/errorCodes')
+const { generateInvalidProductDataError } = require('../services/products/error')
 
-const CartsServices = require('../services/carts.service')
-const ProductsServices = require('../services/products.service')
+const CartsServices = require('../services/carts/carts.service')
+const ProductsServices = require('../services/products/products.service')
 
 const { CartDAO, ProductDAO } = require('../dao/factory')
 
@@ -28,8 +31,14 @@ module.exports = {
 
                 //valido además que su campo quantity sea un valor positivo
                 if (!esPositivo(producto.quantity)) {
-                    res.status(400).json({ error: `El valor de quantity del producto con ID '${producto._id}' es inválido.` })
-                    return
+                    //res.status(400).json({ error: `El valor de quantity del producto con ID '${producto._id}' es inválido.` })
+                    //return
+                    throw CustomError.createError({
+                        name: 'InvalidCartData',
+                        cause: `El valor de quantity del producto con ID '${producto._id}' es inválido.`,
+                        message: 'Error trying to create a new cart',
+                        code: ErrorCodes.INVALID_TYPES_ERROR
+                    })
                 }
             })
             //exito, continuo al endpoint
@@ -45,14 +54,26 @@ module.exports = {
 
             const cart = await cartsServices.getCartById(cartId)
             if (!cart) {
-                res.status(400).json({ error: `No existe el carrito con ID '${cartId}'.` })
-                return
+                //res.status(400).json({ error: `No existe el carrito con ID '${cartId}'.` })
+                //return
+                throw CustomError.createError({
+                    name: 'CartNotFound',
+                    cause: `No existe el carrito con ID '${cartId}'.`,
+                    message: 'Error trying to get a cart',
+                    code: ErrorCodes.NOT_FOUND
+                })
             }
             //exito, continuo al endpoint
             return next()
         }
         catch (err) {
-            res.status(400).json({ error: `No existe el carrito con ID '${req.params.cid}'.` })
+            //res.status(400).json({ error: `No existe el carrito con ID '${req.params.cid}'.` })
+            throw CustomError.createError({
+                name: 'CartNotFound',
+                cause: `No existe el carrito con ID '${req.params.cid}'.`,
+                message: 'Error trying to get a cart',
+                code: ErrorCodes.NOT_FOUND
+            })
         }
     }
 }

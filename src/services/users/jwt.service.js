@@ -1,7 +1,7 @@
 
-const config = require('../config/config')
-const { ADMIN } = require('../config/policies.constants')
-const { isValidPassword } = require('../utils/hashing')
+const config = require('../../config/config')
+const { ADMIN } = require('../../config/policies.constants')
+const { isValidPassword } = require('../../utils/hashing')
 
 class JwtServices {
 

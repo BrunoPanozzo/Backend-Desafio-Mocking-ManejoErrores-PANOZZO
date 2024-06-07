@@ -1,6 +1,9 @@
 
 const { ProductDAO } = require('../dao/factory')
-const ProductsServices = require('../services/products.service')
+const { CustomError } = require('../services/errors/CustomError')
+const { ErrorCodes } = require('../services/errors/errorCodes')
+const { generateInvalidProductDataError } = require('../services/products/error')
+const ProductsServices = require('../services/products/products.service')
 
 const productDAO = ProductDAO()
 const productsServices = new ProductsServices(productDAO)
@@ -84,47 +87,104 @@ const validateProductData = (title, description, price, thumbnail, code, stock, 
 }
 
 const validateNewProduct = async (req, res, next) => {
+    const product = req.body
+
+    product.thumbnail = [product.thumbnail]
+    product.status = JSON.parse(product.status)
+
+    product.price = +product.price
+    product.stock = +product.stock
+
+    const title = product.title
+    const description = product.description
+    const price = product.price
+    const thumbnail = product.thumbnail
+    const code = product.code
+    const stock = product.stock
+    const status = product.status
+    const category = product.category
+
     try {
-        const product = req.body
-
-        product.thumbnail = [product.thumbnail]
-        product.status = JSON.parse(product.status)
-
-        product.price = +product.price
-        product.stock = +product.stock
-
-        if (validateProductData(product.title,
-            product.description,
-            product.price,
-            product.thumbnail,
-            product.code,
-            product.stock,
-            product.status,
-            product.category)) {
+        if (validateProductData(title,
+            description,
+            price,
+            thumbnail,
+            code,
+            stock,
+            status,
+            category)) {
             //debo verificar también que el campo "code" no se repita
             const prod = await productsServices.getProductByCode(product.code)
             if (prod) {
                 let msjeError = `No se permite agregar el producto con código '${product.code}' porque ya existe.`
                 // HTTP 400 => code repetido
-                res.status(400).json({ error: msjeError })
-                return
+                //res.status(400).json({ error: msjeError })
+                //return
+                throw CustomError.createError({
+                    name: 'InvalidProductData',
+                    cause: `No se permite agregar el producto con código '${product.code}' porque ya existe.`,
+                    message: 'Error trying to create a new product',
+                    code: ErrorCodes.INVALID_TYPES_ERROR
+                })
             }
             //exito, continuo al endpoint
             return next()
         }
+
         // HTTP 400 => producto con valores inválidos
-        res.status(400).json({ error: "El producto que se quiere agregar posee algún campo inválido." })
+        //res.status(400).json({ error: "El producto que se quiere agregar posee algún campo inválido." })
+
+        throw CustomError.createError({
+            name: 'InvalidProductData',
+            cause: generateInvalidProductDataError({
+                title,
+                description,
+                price,
+                thumbnail,
+                code,
+                stock,
+                status,
+                category
+            }),
+            message: 'Error trying to create a new product',
+            code: ErrorCodes.INVALID_TYPES_ERROR
+        })
     }
     catch (err) {
-        res.status(400).json({ error: "El producto que se quiere agregar posee algún campo inválido." })
+        //res.status(400).json({ error: "El producto que se quiere agregar posee algún campo inválido." })        
+        throw CustomError.createError({
+            name: 'InvalidProductData',
+            cause: generateInvalidProductDataError({
+                title,
+                description,
+                price,
+                thumbnail,
+                code,
+                stock,
+                status,
+                category
+            }),
+            message: 'Error trying to create a new product',
+            code: ErrorCodes.INVALID_TYPES_ERROR
+        })
     }
 }
 
 const validateUpdateProduct = async (req, res, next) => {
-    try {
-        const prodId = req.params.pid
-        const product = req.body
 
+    const prodId = req.params.pid
+    const product = req.body
+
+    const title = product.title
+    const description = product.description
+    const price = product.price
+    const thumbnail = product.thumbnail
+    const code = product.code
+    const stock = product.stock
+    const status = product.status
+    const category = product.category
+
+    try {
         //primero debo verificar que el producto exista en mi array de todos los productos
         const prod = await productsServices.getProductById(prodId)
         if (!prod) {
@@ -134,32 +194,68 @@ const validateUpdateProduct = async (req, res, next) => {
                 : res.status(500).jsonServerError({ message: 'Something went wrong!' })
         }
 
-        if (validateProductData(product.title,
-            product.description,
-            product.price,
-            product.thumbnail,
-            product.code,
-            product.stock,
-            product.status,
-            product.category)) {
+        if (validateProductData(title,
+            description,
+            price,
+            thumbnail,
+            code,
+            stock,
+            status,
+            category)) {
             //verifico que el campo "code", que puede venir modificado, no sea igual al campo code de otros productos ya existentes
             let allProducts = await productsServices.getProducts(req.query)
             let producto = allProducts.docs.find(element => ((element.code === product.code) && (element._id != prodId)))
             if (producto) {
                 let msjeError = `No se permite modificar el producto con código '${product.code}' porque ya existe.`
                 // HTTP 400 => code repetido
-                res.status(400).json({ error: msjeError })
-                return
+                //res.status(400).json({ error: msjeError })
+                //return
+                throw CustomError.createError({
+                    name: 'InvalidProductData',
+                    cause: `No se permite modificar el producto con código '${product.code}' porque ya existe.`,
+                    message: 'Error trying to modify a product',
+                    code: ErrorCodes.INVALID_TYPES_ERROR
+                })
             }
 
             //exito, continuo al endpoint
             return next()
         }
         // HTTP 400 => producto con valores inválidos
-        res.status(400).json({ error: "El producto que se quiere modificar posee algún campo inválido." })
+        //res.status(400).json({ error: "El producto que se quiere modificar posee algún campo inválido." })
+        throw CustomError.createError({
+            name: 'InvalidProductData',
+            cause: generateInvalidProductDataError({
+                title,
+                description,
+                price,
+                thumbnail,
+                code,
+                stock,
+                status,
+                category
+            }),
+            message: 'Error trying to modify a product',
+            code: ErrorCodes.INVALID_TYPES_ERROR
+        })
     }
     catch (err) {
-        res.status(400).json({ error: "El producto que se quiere modificar posee algún campo inválido." })
+        //res.status(400).json({ error: "El producto que se quiere modificar posee algún campo inválido." })
+        throw CustomError.createError({
+            name: 'InvalidProductData',
+            cause: generateInvalidProductDataError({
+                title,
+                description,
+                price,
+                thumbnail,
+                code,
+                stock,
+                status,
+                category
+            }),
+            message: 'Error trying to modify a product',
+            code: ErrorCodes.INVALID_TYPES_ERROR
+        })
     }
 }
 
@@ -171,15 +267,27 @@ const validateProduct = async (req, res, next) => {
         const prod = await productsServices.getProductById(prodId)
         if (!prod) {
             // HTTP 404 => no existe el producto
-            res.status(404).json({ error: `El producto con ID '${prodId}' no existe.` })
-            return
+            //res.status(404).json({ error: `El producto con ID '${prodId}' no existe.` })
+            //return
+            throw CustomError.createError({
+                name: 'ProductNotFound',
+                cause: `El producto con ID '${prodId}' no existe.`,
+                message: 'Error trying to get a product',
+                code: ErrorCodes.NOT_FOUND
+            })
         }
 
         //exito, continuo al endpoint
         return next()
     }
     catch (err) {
-        res.status(400).json({ error: `El producto con ID '${req.params.pid}' no existe.` })
+        //res.status(404).json({ error: `El producto con ID '${req.params.pid}' no existe.` })
+        throw CustomError.createError({
+            name: 'ProductNotFound',
+            cause: `El producto con ID '${req.params.pid}' no existe.`,
+            message: 'Error trying to get a product',
+            code: ErrorCodes.NOT_FOUND
+        })
     }
 }
 

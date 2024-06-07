@@ -82,7 +82,7 @@ const initializeStrategy = () => {
                 // return res.status(400).json({ error: 'Credenciales inválidas!' })
                 return done(null, false, 'Credenciales inválidas!')
             }
-
+            
             //verifico si es el usuario "ADMIN"
             let logedUser
             if (username === config.ADMIN_USER && password === config.ADMIN_USER_PASS) {

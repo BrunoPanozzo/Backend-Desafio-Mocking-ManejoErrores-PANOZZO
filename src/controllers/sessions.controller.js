@@ -1,24 +1,26 @@
 const { UserDTO } = require("../dao/dto/user.dto")
 const { generateUser } = require("../mocks/generateUsers")
+const { CustomError } = require("../services/errors/CustomError")
+const { ErrorCodes } = require("../services/errors/errorCodes")
+const { generateInvalidCredentialsError } = require("../services/users/errors")
 
 class SessionsController {
 
     constructor() {
     }
 
-    login (req, res) {
-        if (!req.user)
+    login(req, res) {
+        const email = req.body.email        
+        if (!req.user) {
             //return res.status(400).send({ status: 'error', error: 'Credenciales inválidas!' })
-            return res.sendUserError('Credenciales inválidas!')
-        // req.session.user = {
-        //     _id: req.user._id,
-        //     age: req.user.age,
-        //     firstName: req.user.firstName,
-        //     lastName: req.user.lastName,
-        //     email: req.user.email,
-        //     rol: req.user.rol,
-        //     cart: req.user.cart
-        // }
+            //return res.sendUserError('Credenciales inválidas!')
+            throw CustomError.createError({
+                name: 'InvalidCredentials',
+                cause: generateInvalidCredentialsError(email),
+                message: 'Error trying to login a user',
+                code: ErrorCodes.INVALID_CREDENTIALS
+            })
+        }
         req.session.user = new UserDTO(req.user)
 
         // no es necesario validar el login aquí, ya lo hace passport!
@@ -27,7 +29,13 @@ class SessionsController {
 
     failLogin(req, res) {
         //res.send({ status: 'error', message: 'Login erróneo!' })
-        res.sendUnauthorizedError('Login erróneo!')
+        //res.sendUnauthorizedError('Login erróneo!')
+        throw CustomError.createError({
+            name: 'InvalidCredentials',
+            cause: generateInvalidCredentialsError(email),
+            message: 'Error trying to login a user',
+            code: ErrorCodes.INVALID_CREDENTIALS
+        })
     }
 
     resetPassword(req, res) {
@@ -47,20 +55,11 @@ class SessionsController {
     }
 
     failRegister(req, res) {
-       //res.send({ status: 'error', message: 'Registración errónea.!' })
-       res.sendServerError('Registración errónea.!')
+        //res.send({ status: 'error', message: 'Registración errónea.!' })
+        res.sendServerError('Registración errónea.!')
     }
 
     githubCallback(req, res) {
-        // req.session.user = {
-        //     _id: req.user._id,
-        //     age: req.user.age,
-        //     firstName: req.user.firstName,
-        //     lastName: req.user.lastName,
-        //     email: req.user.email,
-        //     rol: req.user.rol,
-        //     cart: req.user.cart
-        // }
         req.session.user = new UserDTO(req.user)
 
         // no es necesario validar el login aquí, ya lo hace passport!
@@ -68,19 +67,10 @@ class SessionsController {
     }
 
     googleCallback(req, res) {
-            // req.session.user = {
-            //     _id: req.user._id,
-            //     age: req.user.age,
-            //     firstName: req.user.firstName,
-            //     lastName: req.user.lastName,
-            //     email: req.user.email,
-            //     rol: req.user.rol, 
-            //     cart: req.user.cart
-            // }
-            req.session.user = new UserDTO(req.user)
+        req.session.user = new UserDTO(req.user)
 
-            // no es necesario validar el login aquí, ya lo hace passport!
-            return res.redirect('/products')
+        // no es necesario validar el login aquí, ya lo hace passport!
+        return res.redirect('/products')
     }
 
     logout(req, res) {
@@ -92,18 +82,16 @@ class SessionsController {
     current(req, res) {
         if (!req.user)
             //return res.status(400).send({ status: 'error', error: 'No existe un usuario logeado!' })
-            return res.sendUserError('No existe un usuario logeado!')
-        // req.session.user = {
-        //     _id: req.user._id,
-        //     age: req.user.age,
-        //     firstName: req.user.firstName,
-        //     lastName: req.user.lastName,
-        //     email: req.user.email,
-        //     rol: req.user.rol, 
-        //     cart: req.user.cart
-        // }
+            //return res.sendUserError('No existe un usuario logeado!')
+            throw CustomError.createError({
+                name: 'UnauthorizedUser',
+                cause: generateInvalidCredentialsError(email),
+                message: 'User is not authorized',
+                code: ErrorCodes.UNAUTHORIZED_ERROR
+            })
+
         req.session.user = new UserDTO(req.user)
-        
+
         // no es necesario validar el login aquí, ya lo hace passport!
         return res.redirect('/profile')
     }

@@ -1,5 +1,5 @@
 const { generateToken } = require('../utils/jwt')
-const JwtServices = require('../services/jwt.service')
+const JwtServices = require('../services/users/jwt.service')
 
 const { UserDAO } = require('../dao/factory')
 const { UserDTO } = require('../dao/dto/user.dto')
